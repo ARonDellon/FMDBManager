@@ -7,8 +7,12 @@
 //
 
 #import "ViewController.h"
+#import "viewModel.h"
+#import "SSBDBaseModel.h"
 
 @interface ViewController ()
+
+@property(nonatomic,strong)viewModel *vm;
 
 @end
 
@@ -17,8 +21,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    va_list arg;
-    
+    self.vm = [[viewModel alloc] init];
+    [self.vm loadMainListItems:nil
+                       success:^(id result) {
+
+                           for (SSBDBaseModel * model in (NSArray *)result) {
+                               NSLog(@"%u",model.age);
+                           }
+                       } failure:^(id result) {
+
+                       }];
 }
 
 

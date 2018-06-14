@@ -9,6 +9,11 @@
 #import <objc/runtime.h>
 #import <sqlite3.h>
 
+NSString * const SQL_TEXT = @"TEXT"; //文本
+NSString * const SQL_INTEGER = @"INTEGER"; //int long integer ...
+NSString * const SQL_REAL = @"REAL"; //浮点
+NSString * const SQL_BLOB = @"BLOB"; //data
+
 const NSString *dbName = @"soso.sqlite";
 
 const NSString *createTablePrefix = @"create table if not exists";
@@ -46,9 +51,11 @@ const NSString *deletePrefix = @"delete from";
     [sqlString appendString:@");"];
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         BOOL result = [db executeUpdate:sqlString];
-        if (rb) {
-            rb(nil,result);
-        }
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (rb) {
+                rb(nil,result);
+            }
+        });
         NSLog(@"表是否创建成功%d",result);
     }];
 }
@@ -64,9 +71,11 @@ const NSString *deletePrefix = @"delete from";
     }
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         BOOL result = [db executeUpdate:insertStr withArgumentsInArray:argArr];
-        if (rb) {
-            rb(nil,result);
-        }
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (rb) {
+                rb(nil,result);
+            }
+        });
     }];
 }
 
@@ -83,9 +92,11 @@ const NSString *deletePrefix = @"delete from";
     NSString *sqlStr = [NSString stringWithFormat:@"%@ %@ where id = %@",[deletePrefix copy],self.modelName,itemID.stringValue];
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         BOOL result = [db executeUpdate:sqlStr];
-        if (rb) {
-            rb(nil,result);
-        }
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (rb) {
+                rb(nil,result);
+            }
+        });
     }];
 }
 
@@ -101,9 +112,11 @@ const NSString *deletePrefix = @"delete from";
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         if ([db tableExists:self.modelName]) {
             BOOL result = [db executeUpdate:[NSString stringWithFormat:@"drop table %@",self.modelName]];
-            if (rb) {
-                rb(nil,result);
-            }
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                if (rb) {
+                    rb(nil,result);
+                }
+            });
         }
     }];
 }
@@ -115,9 +128,11 @@ const NSString *deletePrefix = @"delete from";
     NSString *sqlStr = [NSString stringWithFormat:@"update %@ set %@ = ? where id = %lu",self.modelName,key,(unsigned long)[model itemID]];
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         BOOL result = [db executeUpdate:sqlStr withArgumentsInArray:@[value]];
-        if (rb) {
-            rb(nil,result);
-        }
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (rb) {
+                rb(nil,result);
+            }
+        });
     }];
 }
 
@@ -153,9 +168,12 @@ const NSString *deletePrefix = @"delete from";
 
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         FMResultSet * result = [db executeQuery:sqlStr];
-        if (rb) {
-            rb(result,nil);
-        }
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (rb) {
+                rb(result,nil);
+            }
+        });
+
     }];
 
 }
@@ -179,7 +197,9 @@ const NSString *deletePrefix = @"delete from";
 
         NSString *name = [NSString stringWithCString:property_getName(properties[i])
                                             encoding:NSUTF8StringEncoding];
-        
+        if ([name isEqualToString:@"hash"] || [name isEqualToString:@"debugDescription"] || [name isEqualToString:@"description"] || [name isEqualToString:@"superclass"]) {
+            continue;
+        }
         NSString *value = [model valueForKey:name];
         if (value) {
             [mDic setObject:value forKey:name];
@@ -207,9 +227,11 @@ const NSString *deletePrefix = @"delete from";
 
         NSString *name = [NSString stringWithCString:property_getName(properties[i]) encoding:NSUTF8StringEncoding];
 
-
         NSString *type = [NSString stringWithCString:property_getAttributes(properties[i]) encoding:NSUTF8StringEncoding];
-
+        //hash debugDescription description
+        if ([name isEqualToString:@"hash"] || [name isEqualToString:@"debugDescription"] || [name isEqualToString:@"description"]|| [name isEqualToString:@"superclass"]) {
+            continue;
+        }
         id value = [self propertTypeConvert:type];
         if (value) {
             [mDic setObject:value forKey:name];
@@ -284,7 +306,8 @@ const NSString *deletePrefix = @"delete from";
 
 - (NSString *)insertString:(id<SSBDBaseModeDelegate>)model
 {
-    NSMutableString *finalString = [NSMutableString stringWithFormat:@"insert into %@ (",NSStringFromClass([self.modelName class])];
+    NSMutableString *finalString = [NSMutableString
+                                    stringWithFormat:@"insert into %@ (",self.modelName]	;
     NSDictionary *kVDic = [self changeModel2kVDic:model];
     NSMutableString *tempString = [NSMutableString stringWithCapacity:0];
 
@@ -294,7 +317,7 @@ const NSString *deletePrefix = @"delete from";
     }
     [finalString deleteCharactersInRange:NSMakeRange(finalString.length-1, 1)];
     [tempString deleteCharactersInRange:NSMakeRange(tempString.length-1, 1)];
-    [finalString appendFormat:@") value (%@)",tempString];
+    [finalString appendFormat:@") values (%@)",tempString];
 
     return finalString;
 }

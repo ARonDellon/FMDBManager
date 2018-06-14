@@ -10,10 +10,12 @@
 #import "SSBDBaseModel.h"
 #import <Foundation/Foundation.h>
 
-const NSString *SQL_TEXT = @"TEXT"; //文本
-const NSString *SQL_INTEGER = @"INTEGER"; //int long integer ...
-const NSString *SQL_REAL = @"REAL"; //浮点
-const NSString *SQL_BLOB = @"BLOB"; //data
+
+
+extern NSString * const SQL_TEXT;
+extern NSString * const SQL_INTEGER;
+extern NSString * const SQL_REAL;
+extern NSString * const SQL_BLOB;
 
 typedef void(^resultBlock)(FMResultSet *result, BOOL opIsSuccess);
 
@@ -37,6 +39,12 @@ typedef void(^resultBlock)(FMResultSet *result, BOOL opIsSuccess);
 - (void)deleteModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb;
 
 - (void)searchAllItemResult:(resultBlock)rb;
+
+- (void)searchItemByThresholdArr:(NSArray<NSString *> *)thresholdArr
+                           limit:(NSInteger)limit
+                        orderKey:(NSString *)orederKey
+                         orderBy:(BOOL)isDESC
+                          result:(resultBlock)rb;
 
 - (void)updateItem:(id<SSBDBaseModeDelegate>)model atKey:(NSString *)key result:(resultBlock)rb;
 

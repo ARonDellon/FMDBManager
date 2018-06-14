@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		822C443020D24A5A00BA0B41 /* viewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 822C442F20D24A5A00BA0B41 /* viewModel.m */; };
 		823E9E0820CE45BE00DFC62F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E0720CE45BE00DFC62F /* AppDelegate.m */; };
 		823E9E0B20CE45BE00DFC62F /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E0A20CE45BE00DFC62F /* ViewController.m */; };
 		823E9E0E20CE45BF00DFC62F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 823E9E0C20CE45BF00DFC62F /* Main.storyboard */; };
@@ -26,11 +27,12 @@
 		823E9E4920CE6B6500DFC62F /* SSBDBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E4820CE6B6500DFC62F /* SSBDBaseModel.m */; };
 		823E9E4C20CF9FF700DFC62F /* libsqlite3.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 823E9E4B20CF9FF700DFC62F /* libsqlite3.0.tbd */; };
 		823E9E4F20D0D49B00DFC62F /* SSDBAdaptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E4E20D0D49B00DFC62F /* SSDBAdaptor.m */; };
-		823E9E5520D0E1E800DFC62F /* SSDBDemoModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E5420D0E1E800DFC62F /* SSDBDemoModel.m */; };
 		823E9E5820D0FE7700DFC62F /* SSDBTableManager+Model.m in Sources */ = {isa = PBXBuildFile; fileRef = 823E9E5720D0FE7700DFC62F /* SSDBTableManager+Model.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		822C442E20D24A5A00BA0B41 /* viewModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = viewModel.h; sourceTree = "<group>"; };
+		822C442F20D24A5A00BA0B41 /* viewModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = viewModel.m; sourceTree = "<group>"; };
 		823E9E0320CE45BE00DFC62F /* FMDBManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FMDBManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		823E9E0620CE45BE00DFC62F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		823E9E0720CE45BE00DFC62F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -67,8 +69,6 @@
 		823E9E4B20CF9FF700DFC62F /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		823E9E4D20D0D49B00DFC62F /* SSDBAdaptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SSDBAdaptor.h; sourceTree = "<group>"; };
 		823E9E4E20D0D49B00DFC62F /* SSDBAdaptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SSDBAdaptor.m; sourceTree = "<group>"; };
-		823E9E5320D0E1E800DFC62F /* SSDBDemoModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SSDBDemoModel.h; sourceTree = "<group>"; };
-		823E9E5420D0E1E800DFC62F /* SSDBDemoModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SSDBDemoModel.m; sourceTree = "<group>"; };
 		823E9E5620D0FE7700DFC62F /* SSDBTableManager+Model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SSDBTableManager+Model.h"; sourceTree = "<group>"; };
 		823E9E5720D0FE7700DFC62F /* SSDBTableManager+Model.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SSDBTableManager+Model.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -112,6 +112,8 @@
 				823E9E0720CE45BE00DFC62F /* AppDelegate.m */,
 				823E9E0920CE45BE00DFC62F /* ViewController.h */,
 				823E9E0A20CE45BE00DFC62F /* ViewController.m */,
+				822C442E20D24A5A00BA0B41 /* viewModel.h */,
+				822C442F20D24A5A00BA0B41 /* viewModel.m */,
 				823E9E0C20CE45BF00DFC62F /* Main.storyboard */,
 				823E9E0F20CE45C100DFC62F /* Assets.xcassets */,
 				823E9E1120CE45C100DFC62F /* LaunchScreen.storyboard */,
@@ -197,8 +199,6 @@
 			children = (
 				823E9E4720CE6B6500DFC62F /* SSBDBaseModel.h */,
 				823E9E4820CE6B6500DFC62F /* SSBDBaseModel.m */,
-				823E9E5320D0E1E800DFC62F /* SSDBDemoModel.h */,
-				823E9E5420D0E1E800DFC62F /* SSDBDemoModel.m */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -284,11 +284,11 @@
 			files = (
 				823E9E0B20CE45BE00DFC62F /* ViewController.m in Sources */,
 				823E9E3B20CE5F7600DFC62F /* FMDatabaseQueue.m in Sources */,
+				822C443020D24A5A00BA0B41 /* viewModel.m in Sources */,
 				823E9E4920CE6B6500DFC62F /* SSBDBaseModel.m in Sources */,
 				823E9E1620CE45C100DFC62F /* main.m in Sources */,
 				823E9E3D20CE5F7600DFC62F /* FMDatabase.m in Sources */,
 				823E9E0820CE45BE00DFC62F /* AppDelegate.m in Sources */,
-				823E9E5520D0E1E800DFC62F /* SSDBDemoModel.m in Sources */,
 				823E9E4620CE605100DFC62F /* SSDBTableManager.m in Sources */,
 				823E9E3E20CE5F7600DFC62F /* FMDatabasePool.m in Sources */,
 				823E9E3F20CE5F7600DFC62F /* FMResultSet.m in Sources */,

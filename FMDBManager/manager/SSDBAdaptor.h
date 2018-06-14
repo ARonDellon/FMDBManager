@@ -8,15 +8,24 @@
 
 #import <Foundation/Foundation.h>
 #import "SSDBTableManager.h"
-#import "SSDBDemoModel.h"
+
+
+//@protocol SSDBAdaptorDelegate<NSObject>
+//
+//
+//
+//@end
 
 @interface SSDBAdaptor : NSObject
 
-- (instancetype)initWithModel:(SSDBDemoModel *)model;
+@property(nonatomic,strong,readonly)SSDBTableManager *tableManager;
 
-- (void)saveModel:(NSArray<SSDBDemoModel *> *)models;
-- (void)getModelList:(void (^)(NSArray<SSDBDemoModel *> *, BOOL))resultBlock;
-- (void)changeModel:(SSDBDemoModel *)model key:(NSString *)key value:(id)value;
-
+//- (instancetype)initWithModel:(NSObject<SSBDBaseModeDelegate> *)model delegate:(id<SSDBAdaptorDelegate>)delegate;
+//
+//- (void)getModelListByLastModel:(NSObject<SSBDBaseModeDelegate> *)model
+//                           page:(NSUInteger)page
+//                           size:(NSUInteger)size;
+//- (void)changeModel:(NSObject<SSBDBaseModeDelegate> *)model;
+//- (void)deleteModel:(NSObject<SSBDBaseModeDelegate> *)model;
 
 @end

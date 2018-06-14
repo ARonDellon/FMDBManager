@@ -18,5 +18,8 @@
 @interface SSBDBaseModel : NSObject<SSBDBaseModeDelegate>
 
 
+@property(nonatomic,copy)NSString *name;
+@property(nonatomic,assign)NSUInteger age;
+@property(nonatomic,copy)NSString *timeStamp;
 
 @end

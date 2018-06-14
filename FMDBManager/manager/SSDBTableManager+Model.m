@@ -40,8 +40,8 @@
                 if (value)
                     [item setValue:value forKey:name];
             }
-            [resultArr addObject:item];
         }
+        [resultArr addObject:item];
     }
     return resultArr;
 }
