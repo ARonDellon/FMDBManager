@@ -10,34 +10,41 @@
 #import "SSBDBaseModel.h"
 #import <Foundation/Foundation.h>
 
+const NSString *SQL_TEXT = @"TEXT"; //文本
+const NSString *SQL_INTEGER = @"INTEGER"; //int long integer ...
+const NSString *SQL_REAL = @"REAL"; //浮点
+const NSString *SQL_BLOB = @"BLOB"; //data
+
 typedef void(^resultBlock)(FMResultSet *result, BOOL opIsSuccess);
 
 @interface SSDBTableManager : NSObject
 
-- (BOOL)createTable:(NSString *)tableName model:(SSBDBaseModel *)model;
+@property(nonatomic,strong,readonly)FMDatabaseQueue *dbq;
+@property(nonatomic,copy,readonly)NSString *modelName;
 
-- (BOOL)insertModel:(SSBDBaseModel *)model toTable:(NSString *)tableName;
-- (BOOL)insertModels:(NSArray<SSBDBaseModel *> *)models toTable:(NSString *)tableName;
+/**
+ 通过model初始化数据库表
 
-- (BOOL)deleteItemKey:(NSString *)key
-                value:(NSString *)value
-            fromTable:(NSString *)tableName;
+ @param model model
+ @return 根据model生成表的数据库管理对象
+ */
++ (instancetype)sharedManagerBy:(id<SSBDBaseModeDelegate>)model;
 
-- (BOOL)deleteItemWhereKey:(NSString *)key
-                 threshold:(NSString *)threshold
-                 fromTable:(NSString *)tableName;
+- (void)insertModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb;
 
-- (BOOL)deleteAllFromTable:(NSString *)tableName;
+- (void)insertModels:(NSArray<id<SSBDBaseModeDelegate>> *)models result:(resultBlock)rb;
 
-- (BOOL)updateKey:(NSString *)key value:(NSString *)value atTable:(NSString *)tableName;
-- (BOOL)updateItems:(NSArray<SSBDBaseModel *> *)items atTable:(NSString *)tableName;
+- (void)deleteModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb;
 
+- (void)searchAllItemResult:(resultBlock)rb;
 
-- (NSArray *)searchAllItemFrom:(NSString *)tableName;
-- (NSArray *)searchItemByKey:(NSString *)key
-                   threshold:(NSString *)threshold
-                   fromTable:(NSString *)tableName;
+- (void)updateItem:(id<SSBDBaseModeDelegate>)model atKey:(NSString *)key result:(resultBlock)rb;
 
+- (void)deleteTableResult:(resultBlock)rb;
+
+- (NSDictionary *)changeModel2kVDic:(NSObject<SSBDBaseModeDelegate> *)model;
+
+- (NSDictionary *)getModelTypeDic;
 @end
 
 

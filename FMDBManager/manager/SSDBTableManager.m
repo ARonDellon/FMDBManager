@@ -11,26 +11,22 @@
 
 const NSString *dbName = @"soso.sqlite";
 
-const NSString *SQL_TEXT = @"TEXT"; //文本
-const NSString *SQL_INTEGER = @"INTEGER"; //int long integer ...
-const NSString *SQL_REAL = @"REAL"; //浮点
-const NSString *SQL_BLOB = @"BLOB"; //data
-
-
-const NSString *createTablePrifix = @"create table if not exists";
+const NSString *createTablePrefix = @"create table if not exists";
 const NSString *createTableIdString = @"(id integer primary key autoincrement";
-const NSString *seletecPrifix = @"select * from";
+const NSString *seletecPrefix = @"select * from";
+const NSString *deletePrefix = @"delete from";
 
 @interface SSDBTableManager()
 
 @property(nonatomic,strong)FMDatabaseQueue *dbq;
-@property(nonatomic,copy)NSString *tableName;
+@property(nonatomic,copy)NSString *modelName;
+@property(nonatomic,strong)id modelClass;
 
 @end
 
 @implementation SSDBTableManager
 
-+ (instancetype)sharedManagerBy:(SSBDBaseModel *)model
++ (instancetype)sharedManagerBy:(id<SSBDBaseModeDelegate>)model
 {
     NSString *filePath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:[dbName copy]];
     NSLog(@"fileName = %@",filePath);
@@ -41,27 +37,27 @@ const NSString *seletecPrifix = @"select * from";
 }
 
 
-- (void)createTableByModel:(SSBDBaseModel *)model result:(resultBlock)resultBlock
+- (void)createTableByModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb
 {
-    self.tableName = NSStringFromClass([model class]);
-    NSDictionary *keyTypeDic = [self change2CreateDicFromItemModel:model];
+    self.modelName = NSStringFromClass([model class]);
+    NSDictionary *keyTypeDic = [self getModelTypeDic];
     NSString *keyTypeStr = [self changeDic:keyTypeDic toStringByFormatString:@", %@ %@"];
-    NSMutableString *sqlString = [NSMutableString stringWithFormat:@"%@ %@ %@%@",createTablePrifix,self.tableName,createTableIdString,keyTypeStr];
+    NSMutableString *sqlString = [NSMutableString stringWithFormat:@"%@ %@ %@%@",createTablePrefix,self.modelName,createTableIdString,keyTypeStr];
     [sqlString appendString:@");"];
     [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
         BOOL result = [db executeUpdate:sqlString];
-        if (resultBlock) {
-            resultBlock(nil,result);
+        if (rb) {
+            rb(nil,result);
         }
         NSLog(@"表是否创建成功%d",result);
     }];
 }
 
 
-- (BOOL)insertModel:(SSBDBaseModel *)model result:(resultBlock)rb
+- (void)insertModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb
 {
-    NSString *insertStr = [self insertStringFromeModel:model];
-    NSDictionary *kVDic = [self change2DicFromItemModel:model];
+    NSString *insertStr = [self insertString:model];
+    NSDictionary *kVDic = [self changeModel2kVDic:model];
     NSMutableArray *argArr = [NSMutableArray arrayWithCapacity:0];
     for (NSString *key in kVDic) {
         [argArr addObject:kVDic[key]];
@@ -72,19 +68,25 @@ const NSString *seletecPrifix = @"select * from";
             rb(nil,result);
         }
     }];
-    return NO;
 }
 
-- (BOOL)insertModels:(NSArray<SSBDBaseModel *> *)models result:(resultBlock)rb
+- (void)insertModels:(NSArray<id<SSBDBaseModeDelegate>> *)models result:(resultBlock)rb
 {
-    return NO;
+    for (SSBDBaseModel *model in models) {
+        [self insertModel:model result:rb];
+    }
 }
 
-- (BOOL)deleteItemKey:(NSString *)key
-                value:(NSString *)value
-            fromTable:(NSString *)tableName
+- (void)deleteModel:(id<SSBDBaseModeDelegate>)model result:(resultBlock)rb
 {
-    return NO;
+    NSNumber * itemID = [NSNumber numberWithUnsignedInteger:[model itemID]];
+    NSString *sqlStr = [NSString stringWithFormat:@"%@ %@ where id = %@",[deletePrefix copy],self.modelName,itemID.stringValue];
+    [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [db executeUpdate:sqlStr];
+        if (rb) {
+            rb(nil,result);
+        }
+    }];
 }
 
 - (BOOL)deleteItemWhereKey:(NSString *)key
@@ -94,55 +96,91 @@ const NSString *seletecPrifix = @"select * from";
     return NO;
 }
 
-- (BOOL)deleteAllFromTable:(NSString *)tableName
+- (void)deleteTableResult:(resultBlock)rb
 {
-    return NO;
+    [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
+        if ([db tableExists:self.modelName]) {
+            BOOL result = [db executeUpdate:[NSString stringWithFormat:@"drop table %@",self.modelName]];
+            if (rb) {
+                rb(nil,result);
+            }
+        }
+    }];
 }
 
-- (BOOL)updateKey:(NSString *)key value:(NSString *)value atTable:(NSString *)tableName
+- (void)updateItem:(id<SSBDBaseModeDelegate>)model atKey:(NSString *)key result:(resultBlock)rb
 {
-    return NO;
+    NSDictionary *kVDic = [self changeModel2kVDic:model];
+    id value = kVDic[key];
+    NSString *sqlStr = [NSString stringWithFormat:@"update %@ set %@ = ? where id = %lu",self.modelName,key,(unsigned long)[model itemID]];
+    [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
+        BOOL result = [db executeUpdate:sqlStr withArgumentsInArray:@[value]];
+        if (rb) {
+            rb(nil,result);
+        }
+    }];
 }
-- (BOOL)updateItems:(NSArray<SSBDBaseModel *> *)items atTable:(NSString *)tableName
+
+
+
+- (void)searchAllItemResult:(resultBlock)rb
 {
-    return NO;
+    [self searchItemByThresholdArr:nil limit:0 orderKey:nil orderBy:NO result:rb];
 }
 
 
-- (NSArray *)searchAllItemFrom:(NSString *)tableName
-{
-    return @[];
-}
+//    select * from table where a>3 and b=5 and c<7 order by c DESC limit 10
 
-- (NSArray *)searchItemByKey:(NSString *)key
-                   threshold:(NSString *)threshold
-                   fromTable:(NSString *)tableName
+- (void)searchItemByThresholdArr:(NSArray<NSString *> *)thresholdArr
+                           limit:(NSInteger)limit
+                        orderKey:(NSString *)orederKey
+                         orderBy:(BOOL)isDESC
+                          result:(resultBlock)rb
 {
-    return @[];
+    NSMutableString *sqlStr = [NSMutableString stringWithFormat:@"select * from %@",self.modelName];
+    if (thresholdArr.count > 0) {
+        NSString *conditionStr = [thresholdArr componentsJoinedByString:@" and "];
+        [sqlStr appendFormat:@" where %@",conditionStr];
+    }
+
+    if (orederKey != nil) {
+        [sqlStr appendFormat:@" order by %@ %@",orederKey,isDESC?@"DESC":@"ASC"];
+    }
+
+    if (limit > 0) {
+        [sqlStr appendFormat:@" limit %ld",limit];
+    }
+
+    [self.dbq inDatabase:^(FMDatabase * _Nonnull db) {
+        FMResultSet * result = [db executeQuery:sqlStr];
+        if (rb) {
+            rb(result,nil);
+        }
+    }];
+
 }
 
 
 
 #pragma mark - runtime method
+
 /**
- 模型转成键值对。用来update数据表
+ 模型转成字典
 
  @param model 模型
- @return key-value字典
+ @return 字典
  */
-- (NSDictionary *)change2DicFromItemModel:(SSBDBaseModel *)model
+- (NSDictionary *)changeModel2kVDic:(NSObject<SSBDBaseModeDelegate> *)model
 {
     NSMutableDictionary *mDic = [NSMutableDictionary dictionaryWithCapacity:0];
     unsigned int outCount;
-    objc_property_t *properties = class_copyPropertyList([model class], &outCount);
+    objc_property_t *properties = class_copyPropertyList(NSClassFromString(self.modelName), &outCount);
     for (int i = 0; i < outCount; i++) {
 
-        NSString *name = [NSString stringWithCString:property_getName(properties[i]) encoding:NSUTF8StringEncoding];
-
-
+        NSString *name = [NSString stringWithCString:property_getName(properties[i])
+                                            encoding:NSUTF8StringEncoding];
+        
         NSString *value = [model valueForKey:name];
-
-
         if (value) {
             [mDic setObject:value forKey:name];
         }
@@ -157,15 +195,14 @@ const NSString *seletecPrifix = @"select * from";
 /**
  model转换成key和type的Dic。用来创建表
 
- @param model 模型
  @return 集合字典
  */
-- (NSDictionary *)change2CreateDicFromItemModel:(SSBDBaseModel *)model
+- (NSDictionary *)getModelTypeDic
 {
 
     NSMutableDictionary *mDic = [NSMutableDictionary dictionaryWithCapacity:0];
     unsigned int outCount;
-    objc_property_t *properties = class_copyPropertyList([model class], &outCount);
+    objc_property_t *properties = class_copyPropertyList(NSClassFromString(self.modelName), &outCount);
     for (int i = 0; i < outCount; i++) {
 
         NSString *name = [NSString stringWithCString:property_getName(properties[i]) encoding:NSUTF8StringEncoding];
@@ -245,10 +282,10 @@ const NSString *seletecPrifix = @"select * from";
     return result;
 }
 
-- (NSString *)insertStringFromeModel:(SSBDBaseModel *)model
+- (NSString *)insertString:(id<SSBDBaseModeDelegate>)model
 {
-    NSMutableString *finalString = [NSMutableString stringWithFormat:@"insert into %@ (",NSStringFromClass([model class])];
-    NSDictionary *kVDic = [self change2DicFromItemModel:model];
+    NSMutableString *finalString = [NSMutableString stringWithFormat:@"insert into %@ (",NSStringFromClass([self.modelName class])];
+    NSDictionary *kVDic = [self changeModel2kVDic:model];
     NSMutableString *tempString = [NSMutableString stringWithCapacity:0];
 
     for (NSString *key in kVDic.allKeys) {

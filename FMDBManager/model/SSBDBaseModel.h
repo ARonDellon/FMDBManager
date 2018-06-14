@@ -8,8 +8,15 @@
 
 #import <Foundation/Foundation.h>
 
-@interface SSBDBaseModel : NSObject
+@protocol SSBDBaseModeDelegate<NSObject>
 
-@property(nonatomic,assign)NSUInteger itemID;
+- (NSUInteger)itemID;
+- (void)setItemId: (NSUInteger)itemID;
+
+@end
+
+@interface SSBDBaseModel : NSObject<SSBDBaseModeDelegate>
+
+
 
 @end
